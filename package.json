@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A beginner full-stack to-do list application",
   "main": "server.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "scripts": {
     "start": "node server.js",
     "test": "node --test"

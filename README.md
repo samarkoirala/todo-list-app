@@ -19,6 +19,16 @@ npm.cmd start
 
 Then visit `http://localhost:3000`.
 
+## Deployment
+
+The app reads these optional environment variables:
+
+- `PORT`: port assigned by the hosting service
+- `DATABASE_PATH`: SQLite database file location
+
+SQLite needs persistent storage in production. If a host uses an ephemeral
+filesystem, saved tasks can disappear when the service restarts or redeploys.
+
 ## Run the Tests
 
 ```powershell
