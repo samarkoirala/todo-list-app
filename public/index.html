@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My To-Do List</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="todo-card">
+      <h1>My To-Do List</h1>
+      <p class="subtitle">Keep track of what you need to do.</p>
+
+      <form id="task-form">
+        <label for="task-input">New task</label>
+        <div class="input-row">
+          <input
+            id="task-input"
+            type="text"
+            placeholder="For example: Study JavaScript"
+            maxlength="200"
+            required
+          >
+          <button id="add-button" type="submit">Add Task</button>
+        </div>
+      </form>
+
+      <h2>Tasks</h2>
+      <p id="message" class="message" aria-live="polite"></p>
+      <ul id="task-list"></ul>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "todo-list-app",
+  "version": "1.0.0",
+  "description": "A beginner full-stack to-do list application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
