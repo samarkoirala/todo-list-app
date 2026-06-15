@@ -1,42 +1,24 @@
 const express = require("express");
-const { DatabaseSync } = require("node:sqlite");
-
-function formatTask(task) {
-  return {
-    ...task,
-    completed: Boolean(task.completed),
-  };
-}
 
 function isValidTaskId(id) {
   return Number.isInteger(Number(id)) && Number(id) > 0;
 }
 
-function createApp(databasePath = "tasks.db") {
+function createApp(taskStore) {
   const app = express();
-  const database = new DatabaseSync(databasePath);
-
-  database.exec(`
-    CREATE TABLE IF NOT EXISTS tasks (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      description TEXT NOT NULL,
-      completed INTEGER NOT NULL DEFAULT 0
-    )
-  `);
 
   app.use(express.json());
   app.use(express.static("public"));
 
-  app.get("/api/tasks", (request, response) => {
-    const tasks = database
-      .prepare("SELECT id, description, completed FROM tasks ORDER BY id")
-      .all()
-      .map(formatTask);
-
-    response.json(tasks);
+  app.get("/api/tasks", async (request, response, next) => {
+    try {
+      response.json(await taskStore.getAll());
+    } catch (error) {
+      next(error);
+    }
   });
 
-  app.post("/api/tasks", (request, response) => {
+  app.post("/api/tasks", async (request, response, next) => {
     const description = request.body.description?.trim();
 
     if (!description) {
@@ -49,18 +31,14 @@ function createApp(databasePath = "tasks.db") {
         .json({ error: "Task description must be 200 characters or fewer." });
     }
 
-    const result = database
-      .prepare("INSERT INTO tasks (description) VALUES (?)")
-      .run(description);
-
-    const task = database
-      .prepare("SELECT id, description, completed FROM tasks WHERE id = ?")
-      .get(result.lastInsertRowid);
-
-    return response.status(201).json(formatTask(task));
+    try {
+      return response.status(201).json(await taskStore.create(description));
+    } catch (error) {
+      return next(error);
+    }
   });
 
-  app.patch("/api/tasks/:id", (request, response) => {
+  app.patch("/api/tasks/:id", async (request, response, next) => {
     if (!isValidTaskId(request.params.id)) {
       return response.status(400).json({ error: "Task ID must be a positive number." });
     }
@@ -69,35 +47,38 @@ function createApp(databasePath = "tasks.db") {
       return response.status(400).json({ error: "Completed must be true or false." });
     }
 
-    const result = database
-      .prepare("UPDATE tasks SET completed = ? WHERE id = ?")
-      .run(Number(request.body.completed), request.params.id);
+    try {
+      const task = await taskStore.update(
+        Number(request.params.id),
+        request.body.completed,
+      );
 
-    if (result.changes === 0) {
-      return response.status(404).json({ error: "Task not found." });
+      if (!task) {
+        return response.status(404).json({ error: "Task not found." });
+      }
+
+      return response.json(task);
+    } catch (error) {
+      return next(error);
     }
-
-    const task = database
-      .prepare("SELECT id, description, completed FROM tasks WHERE id = ?")
-      .get(request.params.id);
-
-    return response.json(formatTask(task));
   });
 
-  app.delete("/api/tasks/:id", (request, response) => {
+  app.delete("/api/tasks/:id", async (request, response, next) => {
     if (!isValidTaskId(request.params.id)) {
       return response.status(400).json({ error: "Task ID must be a positive number." });
     }
 
-    const result = database
-      .prepare("DELETE FROM tasks WHERE id = ?")
-      .run(request.params.id);
+    try {
+      const deleted = await taskStore.delete(Number(request.params.id));
 
-    if (result.changes === 0) {
-      return response.status(404).json({ error: "Task not found." });
+      if (!deleted) {
+        return response.status(404).json({ error: "Task not found." });
+      }
+
+      return response.status(204).send();
+    } catch (error) {
+      return next(error);
     }
-
-    return response.status(204).send();
   });
 
   app.use((error, request, response, next) => {
@@ -110,7 +91,7 @@ function createApp(databasePath = "tasks.db") {
     return response.status(500).json({ error: "Something went wrong on the server." });
   });
 
-  return { app, database };
+  return app;
 }
 
 module.exports = { createApp };

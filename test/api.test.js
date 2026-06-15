@@ -1,17 +1,19 @@
 const assert = require("node:assert/strict");
 const { after, before, test } = require("node:test");
 const { createApp } = require("../app");
+const { createMemoryTaskStore } = require("../task-store");
 
 let baseUrl;
-let database;
 let server;
+let taskStore;
 
 before(async () => {
-  const testApp = createApp(":memory:");
-  database = testApp.database;
+  taskStore = createMemoryTaskStore();
+  await taskStore.initialize();
+  const app = createApp(taskStore);
 
   await new Promise((resolve) => {
-    server = testApp.app.listen(0, "127.0.0.1", resolve);
+    server = app.listen(0, "127.0.0.1", resolve);
   });
 
   baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -19,7 +21,7 @@ before(async () => {
 
 after(async () => {
   await new Promise((resolve) => server.close(resolve));
-  database.close();
+  await taskStore.close();
 });
 
 test("GET /api/tasks starts with an empty list", async () => {

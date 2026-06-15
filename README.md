@@ -7,7 +7,7 @@ A beginner full-stack project for creating, viewing, completing, and deleting ta
 - Add tasks
 - Mark tasks complete or incomplete
 - Delete tasks
-- Save tasks in SQLite
+- Save tasks permanently in PostgreSQL
 - Validate input and display helpful messages
 - Test the API automatically
 
@@ -19,15 +19,16 @@ npm.cmd start
 
 Then visit `http://localhost:3000`.
 
-## Deployment
+## Database
 
-The app reads these optional environment variables:
+The app requires a PostgreSQL connection string:
 
-- `PORT`: port assigned by the hosting service
-- `DATABASE_PATH`: SQLite database file location
+```powershell
+$env:DATABASE_URL="postgresql://username:password@localhost:5432/todo_list"
+```
 
-SQLite needs persistent storage in production. If a host uses an ephemeral
-filesystem, saved tasks can disappear when the service restarts or redeploys.
+For the deployed app, add a Neon PostgreSQL connection string as the Render
+web service's `DATABASE_URL` environment variable.
 
 ## Run the Tests
 
